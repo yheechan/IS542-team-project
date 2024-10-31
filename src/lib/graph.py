@@ -84,6 +84,7 @@ class Graph:
         
         self.node_num = len(self.graph)
     
+    # I THINK THIS IS FUNCTION THAT RUNS SYBILSCAR
     def init(self, is_train=False):
         self.prior_list = [0] * self.config.node_cnt
         self.prior_list = self.read_prior(self.prior_list, is_train=is_train)

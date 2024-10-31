@@ -14,8 +14,8 @@ def main(args):
     # initializes GA
     ga = GeneticAlgorithm.GeneticAlgorithm(
         args.target,
-        budget=10,
-        population_size=10
+        budget=10, population_size=10,
+        crossover_rate=0.5, mutation_rate=0.5
     )
 
     

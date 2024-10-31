@@ -28,6 +28,21 @@ class GeneticAlgorithm:
             f"{self.target_dataset_dir}/originalgraph_{self.target}.txt"
         )
     
+    def run_ga(self):
+        """
+        runs genetic algorithm
+        1. intializes random population
+        2. evaluates population
+        3. randomly select parents
+        4. crossover parents
+        5. mutate children
+        6. evaluate children
+        7. push children to new population until population size is reached
+        8. select fit graphs in old population + new population 
+        9. repeat 3-8 until budget is reached
+        """
+        # TODO: implement this function
+    
     def crossover_graph(self, crossover_rate, g1, g2):
         """
         returns two graph that results from crossover
