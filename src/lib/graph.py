@@ -8,32 +8,73 @@ from sklearn.metrics import roc_auc_score
 # newgraph_Facebook_equal_close_ENM.txt
 
 class Graph:
-    def __init__(
-            self, config: Config,
-            prior_filename="NotSpecified.txt",
-            post_filename="NotSpecified.txt",
-            withBuffer=False,
-    ):
+    def __init__(self, config: Config):
         self.config = config
-        self.prior_filename = prior_filename
-        self.post_filename = post_filename
-        self.withBuffer = withBuffer
 
         # intializes..
         # self.graph
-        self.init_graph()
+        # self.init_graph()
+
+    ###########################
+    ### function of grpah #####
+    ###########################
+    def random_graph(self):
+        """
+        returns a copy of a random grpah that is
+        generated as a subgraph of the original graph
+        """
+        # TODO: implement this function
+        pass
+
+    def remove_random_nodes(self, number_of_nodes):
+        """
+        returns a copy of the graph that results from removing
+        'number_of_nodes' number of nodes from the original graph
+        """
+        # TODO: implement this function
+        pass
+
+    def add_random_nodes(self, number_of_nodes):
+        """
+        returns a copy of the graph that results from adding
+        'number_of_nodes' number of nodes to the original graph
+        """
+        # TODO: implement this function
+        pass
+
+    def remove_random_edges(self, number_of_edges):
+        """
+        returns a copy of the graph that results from removing
+        'number_of_edges' number of edges from the original graph
+        """
+        # TODO: implement this function
+        pass
+
+    def add_random_edges(self, number_of_edges):
+        """
+        returns a copy of the graph that results from adding
+        'number_of_edges' number of edges to the original graph
+        """
+        # TODO: implement this function
+        pass
+
+    def evaluate_graph(self):
+        """
+        evaluates graph to SybilSCAR to
+        assign a fitness score of the graph
+        """
+        # TODO: implement this function
+        pass
 
 
     ###########################
-    ### GRAPH UTILS ###########
+    ### GRAPH UTILS from RICC ###########
     ###########################
     def init_graph(self):
         self.graph = [[] * self.config.node_cnt for _ in range(self.config.node_cnt)]
 
     def read_graph_from_file_path(self, file_path):
-        self.graph_file_path = Constants.ricc_dir_path / file_path
-
-        with open(self.graph_file_path, "r") as f:
+        with open(file_path, "r") as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip().split()
