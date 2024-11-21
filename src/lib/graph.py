@@ -63,32 +63,23 @@ class Graph:
         assign a fitness score of the graph
         """
         # TODO: implement this function
-        pass
+        self.init(is_train=True)
 
 
     ###########################
     ### GRAPH UTILS from RICC ###########
     ###########################
-    def init_graph(self, config):
-        self.config = config
+    def init_graph(self):
         self.graph = [[] * self.config.node_cnt for _ in range(self.config.node_cnt)]
 
     def read_graph_from_file_path(self, file_path):
-        self.graph = {}
         with open(file_path, "r") as f:
             lines = f.readlines()
-
             for line in lines:
                 line = line.strip().split()
                 node1 = int(line[0])
                 node2 = int(line[1])
-                if node1 not in self.graph:
-                    self.graph[node1] = []
-                if node2 not in self.graph:
-                    self.graph[node2] = []
-                
                 self.graph[node1].append(node2)
-        
         
         self.node_num = len(self.graph)
     
@@ -104,15 +95,13 @@ class Graph:
             post_list_tmp = self.run_lbp(post_list, withBuffer=self.withBuffer)
             post_list = copy.deepcopy(post_list_tmp)
         
-        post_file_path = Constants.ricc_dir_path / self.post_filename
-        self.save_posterior(post_file_path, post_list)
+        # post_file_path = Constants.ricc_dir_path / self.post_filename
+        self.save_posterior(self.post_file_path, post_list)
 
     
     def read_prior(self, prior_list, is_train=False):
-        prior_file_path = Constants.ricc_dir_path / self.prior_filename
-
         if is_train:
-            with open(prior_file_path, "r") as f:
+            with open(self.prior_file_path, "r") as f:
                 train_negative = f.readline()
                 train_positive = f.readline()
 
@@ -124,8 +113,7 @@ class Graph:
                 for positive_idx in self.positive_nodes:
                     prior_list[int(positive_idx)] = +1 * Constants.theta
         else:
-            prior_file_path = Constants.ricc_dir_path / self.prior_filename
-            with open(prior_file_path, "r") as f:
+            with open(self.prior_file_path, "r") as f:
                 lines = f.read().splitlines()
 
                 for line in lines:
@@ -339,7 +327,7 @@ class Graph:
 
         # graph
         # 1: [4, 2, 3]
-        # 2: [3, 4,5 ]
+        # 2: [3, 4, 5]
         for nei_list in enumerate(graph_list):
             #score_tmp = float(post_list[nei_list[0]])
             score_tmp = 0

@@ -23,7 +23,7 @@ class GeneticAlgorithm:
 
         # intializes original graph
         self.original_graph = Graph.Graph(self.config)
-        # self.original_graph.init_graph(self.config)
+        self.original_graph.init_graph()
         
         # # dataset/Facebook/originalgraph_Facebook.txt
         self.original_graph.read_graph_from_file_path(
@@ -51,8 +51,15 @@ class GeneticAlgorithm:
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
                 individual = Graph.Graph(self.config)
+                individual.init_graph()
                 individual.read_graph_from_file_path(graph_file)
-                print(individual.node_num)
+
+                individual.prior_file_path = self.target_dataset_dir / "train.txt"
+                individual.post_file_path = self.target_dataset_dir / "test.txt"
+                individual.withBuffer = True
+                individual.init()
+                exit(1)
+
                 population.append(individual)
 
         # # randomly initialize population until population size is reached
