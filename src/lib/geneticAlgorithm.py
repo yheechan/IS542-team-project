@@ -22,7 +22,7 @@ class GeneticAlgorithm:
         self.mutation_rate = mutation_rate
 
         # intializes original graph
-        self.original_graph = Graph.Graph()
+        self.original_graph = Graph.Graph(self.config)
         # self.original_graph.init_graph(self.config)
         
         # # dataset/Facebook/originalgraph_Facebook.txt
@@ -50,13 +50,18 @@ class GeneticAlgorithm:
         if self.use_seed:
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
-                individual = Graph.Graph()
-                individual = individual.read_graph_from_file_path(graph_file)
+                individual = Graph.Graph(self.config)
+                individual.read_graph_from_file_path(graph_file)
+                print(individual.node_num)
                 population.append(individual)
 
-        # randomly initialize population until population size is reached
-        for i in range(self.population_size - len(population)):
-            individual = self.original_graph#.random_subgraph()
+        # # randomly initialize population until population size is reached
+        # for i in range(self.population_size - len(population)):
+        #     individual = self.original_graph#.random_subgraph()
+        
+        # # assign fitness for each individual in the population
+        # for i in range(len(population)):
+        #     population[i].evaluate_graph()
             
         
 

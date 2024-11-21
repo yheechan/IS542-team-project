@@ -8,8 +8,8 @@ from sklearn.metrics import roc_auc_score
 # newgraph_Facebook_equal_close_ENM.txt
 
 class Graph:
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
         # intializes..
         # self.graph
         # self.init_graph()
