@@ -79,6 +79,8 @@ class Graph:
                 line = line.strip().split()
                 node1 = int(line[0])
                 node2 = int(line[1])
+                if node1 > len(self.graph)-1:
+                    self.graph.extend([[] * (node1 - len(self.graph)-1)])
                 self.graph[node1].append(node2)
         
         self.node_num = len(self.graph)
@@ -95,8 +97,9 @@ class Graph:
             post_list_tmp = self.run_lbp(post_list, withBuffer=self.withBuffer)
             post_list = copy.deepcopy(post_list_tmp)
         
+        self.post_list = post_list
         # post_file_path = Constants.ricc_dir_path / self.post_filename
-        self.save_posterior(self.post_file_path, post_list)
+        # self.save_posterior(self.post_file_path, post_list)
 
     
     def read_prior(self, prior_list, is_train=False):

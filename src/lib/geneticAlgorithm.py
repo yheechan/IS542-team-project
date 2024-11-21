@@ -54,17 +54,19 @@ class GeneticAlgorithm:
                 individual.init_graph()
                 individual.read_graph_from_file_path(graph_file)
 
+                '''
                 individual.prior_file_path = self.target_dataset_dir / "train.txt"
                 individual.post_file_path = self.target_dataset_dir / "test.txt"
                 individual.withBuffer = True
                 individual.init()
                 exit(1)
-
+                '''
+                print(individual.node_num)
                 population.append(individual)
 
-        # # randomly initialize population until population size is reached
-        # for i in range(self.population_size - len(population)):
-        #     individual = self.original_graph#.random_subgraph()
+        # randomly initialize population until population size is reached
+        for i in range(self.population_size - len(population)):
+            individual = self.original_graph#.random_subgraph()
         
         # # assign fitness for each individual in the population
         # for i in range(len(population)):
