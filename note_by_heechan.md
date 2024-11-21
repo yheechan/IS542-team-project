@@ -13,3 +13,23 @@
     * 어떤 기준인지는 모르겠으나, 여기 포함된 node들도 ``train*`` 파일에 포함 된 node들도 있다.
 
 * check_FN_nodes() need to more analysis time.
+
+
+## 241121 12주차 목요일
+### 질문 리스트
+1. ``check_FN_nodes()``함수에서 ``target.txt`` 기반으로 공격 그래프에 대한 sybil classification을 평가한다. 이때 ``target.txt`` **전체 그래프**라는 파일로 부터 랜덤 ``N``개의 sybil node와 랜덤 ``N``개의 benign node를 선택하여 평가 지표로 사용된다. 근데 **전체 그래프**, 이 파일은 대체 어디있는가? ``initial_files/<subject>/prior_0(0.5).txt`` 파일을 보면 -0.5는 benign, 0.5는 sybil이라고 하는데, 통계 결과는 다음과 같이 나온다.
+    ```
+    # initial_files/Facebook/prior_0(0.5).txt
+    Total number of scores: 8078
+    Total nodes: 8078
+    Total zero nodes: 7878
+    Total benign nodes: 100
+    Total sybil nodes: 100
+
+    # initial_files/Enron/prior_0(0.5).txt
+    Total number of scores: 67392
+    Total nodes: 67392
+    Total zero nodes: 67192
+    Total benign nodes: 100
+    Total sybil nodes: 100
+    ```

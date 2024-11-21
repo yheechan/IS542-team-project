@@ -5,12 +5,13 @@ import lib.constants as Constants
 
 class GeneticAlgorithm:
     def __init__(
-            self, target, 
+            self, target, use_seed,
             budget=10, population_size=10,
             crossover_rate=0.5, mutation_rate=0.5
     ):
         # initializes configs
         self.target = target
+        self.use_seed = use_seed
         self.target_dataset_dir = Constants.dataset_dir_path / target
         self.config = Config.Config(target)
 
@@ -21,9 +22,10 @@ class GeneticAlgorithm:
         self.mutation_rate = mutation_rate
 
         # intializes original graph
-        self.original_graph = Graph.Graph(self.config)
-        self.original_graph.init_graph()
-        # dataset/Facebook/originalgraph_Facebook.txt
+        self.original_graph = Graph.Graph()
+        # self.original_graph.init_graph(self.config)
+        
+        # # dataset/Facebook/originalgraph_Facebook.txt
         self.original_graph.read_graph_from_file_path(
             f"{self.target_dataset_dir}/originalgraph_{self.target}.txt"
         )
@@ -42,6 +44,25 @@ class GeneticAlgorithm:
         9. repeat 3-8 until budget is reached
         """
         # TODO: implement this function
+        population = []
+
+        # if use_seed option is True, then load initial seed (graphs)
+        if self.use_seed:
+            initial_seed_dir = self.target_dataset_dir / "initial_seeds"
+            for graph_file in initial_seed_dir.iterdir():
+                individual = Graph.Graph()
+                individual = individual.read_graph_from_file_path(graph_file)
+                population.append(individual)
+
+        # randomly initialize population until population size is reached
+        for i in range(self.population_size - len(population)):
+            individual = self.original_graph#.random_subgraph()
+            
+        
+
+
+        
+        
     
     def crossover_graph(self, crossover_rate, g1, g2):
         """

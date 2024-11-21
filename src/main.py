@@ -13,10 +13,11 @@ import lib.geneticAlgorithm as GeneticAlgorithm
 def main(args):
     # initializes GA
     ga = GeneticAlgorithm.GeneticAlgorithm(
-        args.target,
+        args.target, args.use_seed,
         budget=10, population_size=10,
         crossover_rate=0.5, mutation_rate=0.5
     )
+    ga.run_ga()
 
     
 

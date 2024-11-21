@@ -8,9 +8,8 @@ from sklearn.metrics import roc_auc_score
 # newgraph_Facebook_equal_close_ENM.txt
 
 class Graph:
-    def __init__(self, config: Config):
-        self.config = config
-
+    def __init__(self):
+        pass
         # intializes..
         # self.graph
         # self.init_graph()
@@ -18,7 +17,7 @@ class Graph:
     ###########################
     ### function of grpah #####
     ###########################
-    def random_graph(self):
+    def random_subgraph(self):
         """
         returns a copy of a random grpah that is
         generated as a subgraph of the original graph
@@ -70,17 +69,26 @@ class Graph:
     ###########################
     ### GRAPH UTILS from RICC ###########
     ###########################
-    def init_graph(self):
+    def init_graph(self, config):
+        self.config = config
         self.graph = [[] * self.config.node_cnt for _ in range(self.config.node_cnt)]
 
     def read_graph_from_file_path(self, file_path):
+        self.graph = {}
         with open(file_path, "r") as f:
             lines = f.readlines()
+
             for line in lines:
                 line = line.strip().split()
                 node1 = int(line[0])
                 node2 = int(line[1])
+                if node1 not in self.graph:
+                    self.graph[node1] = []
+                if node2 not in self.graph:
+                    self.graph[node2] = []
+                
                 self.graph[node1].append(node2)
+        
         
         self.node_num = len(self.graph)
     
