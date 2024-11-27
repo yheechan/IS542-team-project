@@ -1,5 +1,6 @@
 import random
 
+import random
 import lib.config as Config
 import lib.graph as Graph
 import lib.constants as Constants
@@ -47,8 +48,6 @@ class GeneticAlgorithm:
         """
         # TODO: implement this function
         population = []
-
-        # 1. if use_seed option is True, then load initial seed (graphs)
         if self.use_seed:
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
@@ -60,10 +59,16 @@ class GeneticAlgorithm:
                 individual.evaluate_graph(self.target_dataset_dir)
 
                 population.append(individual)
-
+        """
         # randomly initialize population until population size is reached
-        # for i in range(self.population_size - len(population)):
-        #     individual = self.original_graph#.random_subgraph()
+        for i in range(self.population_size - len(population)):
+            individual = self.original_graph#.random_subgraph()
+            # choose random number of nodes to remove
+            max_num_nodes_to_remove = int(individual.node_num/400)
+            random_num_nodes_to_remove= random.randint(0, max_num_nodes_to_remove)
+            print(f"[*] Randomly removing {random_num_nodes_to_remove} nodes\n")
+            removed_graph = individual.random_subgraph(random_num_nodes_to_remove)
+            population.append(removed_graph)
         
         # randomly select a graph as initial best_graph
         best_graph = population[random.randrange(len(population))]
