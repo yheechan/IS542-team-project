@@ -23,13 +23,19 @@ class Graph:
 
         removed_nodes_idx = 0
         for i, connected_nodes in enumerate(self.graph):
-            if i not in nodes_to_remove:
-                # Remove edges to nodes that will be removed
-                for node in connected_nodes:
-                    if node in nodes_to_remove:
-                        connected_nodes.remove(node)
-            else:
-                # Remove nodes
+            # Remove edges to nodes that will be removed
+            edge_length = len(connected_nodes)
+            j = 0
+            while j < edge_length:
+                dest_node = connected_nodes[j]
+                if dest_node in nodes_to_remove:
+                    connected_nodes.remove(dest_node)
+                    edge_length -= 1
+                    continue
+                j += 1
+
+            # Remove nodes
+            if i in nodes_to_remove:
                 # print(f"[*] Removed nodes: {nodes_to_remove[removed_nodes_idx]}/{self.graph[i]}")
                 self.graph[i] = [-1]
                 removed_nodes_idx += 1
@@ -44,7 +50,7 @@ class Graph:
     
         # Decide how many nodes will be removed: num_nodes2remove
         num_nodes2remove = random.randint(1, 5)
-        print(f"[*] Number of nodes to remove: {num_nodes2remove}")
+        # print(f"[*] Number of nodes to remove: {num_nodes2remove}")
 
         # Decide which nodes will be removed: nodes_to_remove
         # ranges from [num_negative, node_cnt)
@@ -53,7 +59,7 @@ class Graph:
                 range(self.config.num_negative, self.config.node_cnt),
                 num_nodes2remove
             ))
-        print(f"[*] Removing nodes: {nodes_to_remove}")
+        # print(f"[*] Removing nodes: {nodes_to_remove}")
           
         # Remove nodes in graph based on the list of nodes to remove
         self.remove_nodes_based_on_list(nodes_to_remove)
@@ -68,12 +74,11 @@ class Graph:
         for i, connected_nodes in enumerate(self.graph):
             # change indexes in connected_nodes to new indexes
             if i not in nodes_to_remove:
-                assert connected_nodes[0] != -1
                 assert set(connected_nodes).intersection(set(nodes_to_remove)) == set()
                 new_connected_nodes = [indexing_dict[node] for node in connected_nodes]
                 new_graph.append(new_connected_nodes)
-            else:
-                print(f"[*] Node {i} and its connected nodes are not added to new_graph")
+            # else:
+                # print(f"[*] Node {i} and its connected nodes are not added to new_graph")
         
            
         # assert code
@@ -98,7 +103,7 @@ class Graph:
         new_index = {}
         new_idx = 0
         
-        print(f"[*] Nodes to remove: {nodes_to_remove}")
+        # print(f"[*] Nodes to remove: {nodes_to_remove}")
         # Create a mapping from old indices to new indices
         gap = 0
         for old_idx in range(node_size):
@@ -111,8 +116,8 @@ class Graph:
                         remove_node_idx = nodes_to_remove.index(old_idx - 1)
                     else:
                         raise ValueError('Node not found')
-                    print(f"[*] old_idx: {old_idx}, new_idx: {new_idx}"
-                          +f"/ remove_node_idx: {remove_node_idx}, old_idx - new_idx: {new_gap}")
+                    # print(f"[*] old_idx: {old_idx}, new_idx: {new_idx}"
+                          # +f"/ remove_node_idx: {remove_node_idx}, old_idx - new_idx: {new_gap}")
                     gap = new_gap
                 new_idx += 1
         return new_index    
@@ -369,14 +374,8 @@ class Graph:
             if float(self.post_list[int(node)]) > Constants.threshold:
                 target_detect += 1
 
-        print(f"[*] graph size: {self.node_num}, {len(self.graph)}")
-        print(f"[*] num_new_nodes: {self.num_new_nodes}, num_removed_nodes: {self.num_removed_nodes}")
-        print(f"[*] num_negative: {num_negative}, num_positive: {num_positive}")
         y_true = [0] * (num_negative - 100) \
             + [1] * (num_positive - 100 + self.num_new_nodes - self.num_removed_nodes)
-        # y_true = [0] * (num_negative - 100) \
-            # + [1] * (num_positive - (100 + self.num_new_nodes))
-        print(f"len(y_true): {len(y_true)}, len(score_list_no_train): {len(score_list_no_train)}")
         roc_auc = roc_auc_score(y_true, score_list_no_train)
 
         # print and save the performance of the RICC

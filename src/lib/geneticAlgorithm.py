@@ -61,8 +61,7 @@ class GeneticAlgorithm:
 
                 # 2. evaluate individual before adding to population
                 individual.evaluate_graph(self.target_dataset_dir)
-                print(individual)
-                individual.print_graph_info()
+
                 population.append(individual)
 
         # randomly initialize population until population size is reached
@@ -75,8 +74,6 @@ class GeneticAlgorithm:
                 
                 individual.set_node_nums()
                 individual.evaluate_graph(self.target_dataset_dir)
-
-                print(individual)
 
                 population.append(individual)
         
