@@ -49,7 +49,7 @@ class Graph:
                 # print(f"[*] Removed all connected nodes for node {i}")
 
 
-    def remove_random_nodes(self, number_of_nodes):
+    def remove_random_nodes(self):
         """
         returns a copy of the graph that results from removing
         'number_of_nodes' number of nodes from the original graph
@@ -57,7 +57,7 @@ class Graph:
         # TODO: implement this function
         pass
 
-    def add_random_nodes(self, number_of_nodes):
+    def add_random_nodes(self):
         """
         returns a copy of the graph that results from adding
         'number_of_nodes' number of nodes to the original graph
@@ -65,7 +65,7 @@ class Graph:
         # TODO: implement this function
         pass
 
-    def remove_random_edges(self, number_of_edges):
+    def remove_random_edges(self):
         """
         returns a copy of the graph that results from removing
         'number_of_edges' number of edges from the original graph
@@ -73,7 +73,7 @@ class Graph:
         # TODO: implement this function
         pass
 
-    def add_random_edges(self, number_of_edges):
+    def add_random_edges(self):
         """
         returns a copy of the graph that results from adding
         'number_of_edges' number of edges to the original graph
@@ -118,6 +118,9 @@ class Graph:
                     self.graph.extend(extend_amnt)
                 self.graph[node1].append(node2)
         
+        self.set_node_nums()
+    
+    def set_node_nums(self):
         self.num_new_nodes = 0
         self.num_removed_nodes = 0
 

@@ -9,7 +9,8 @@ class GeneticAlgorithm:
     def __init__(
             self, target, use_seed,
             budget=10, population_size=10, selection_size=3,
-            crossover_rate=0.5, mutation_rate=0.5
+            crossover_rate=0.5, mutation_rate=0.5,
+            mute_op=0.5, mute_type=0.5,
     ):
         # initializes configs
         self.target = target
@@ -23,6 +24,8 @@ class GeneticAlgorithm:
         self.selection_size = selection_size
         self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
+        self.mute_op = mute_op
+        self.mute_type = mute_type
 
         # intializes original graph
         self.original_graph = Graph.Graph(self.config)
@@ -41,10 +44,9 @@ class GeneticAlgorithm:
         3. randomly select parents
         4. crossover parents
         5. mutate children
-        6. evaluate children
-        7. push children to new population until population size is reached
-        8. select fit graphs in old population + new population 
-        9. repeat 3-8 until budget is reached
+        6. push children to new population until population size is reached
+        7. select fit graphs in old population + new population 
+        8. repeat 3-8 until budget is reached
         """
         # TODO: implement this function
         population = []
@@ -61,48 +63,67 @@ class GeneticAlgorithm:
                 population.append(individual)
 
         # randomly initialize population until population size is reached
-        for i in range(self.population_size - len(population)):
-            # choose random number of nodes to remove
-            max_num_nodes_to_remove = int(self.original_graph.node_num/400)
-            random_num_nodes_to_remove= random.randint(0, max_num_nodes_to_remove)
-            print(f"[*] Randomly removing {random_num_nodes_to_remove} nodes\n")
-            inidividual = copy.deepcopy(self.original_graph)
-            inidividual.make_as_random_subgraph(random_num_nodes_to_remove)
+        if len(population) < self.population_size:
+            for i in range(self.population_size - len(population)):
+                # choose random number of nodes to remove
+                max_num_nodes_to_remove = int(self.original_graph.node_num/400)
+                random_num_nodes_to_remove= random.randint(0, max_num_nodes_to_remove)
+                print(f"[*] Randomly removing {random_num_nodes_to_remove} nodes\n")
+                inidividual = copy.deepcopy(self.original_graph)
+                inidividual.make_as_random_subgraph(random_num_nodes_to_remove)
+                
+                individual.set_node_nums()
+                individual.evaluate_graph(self.target_dataset_dir)
 
 
-            population.append(inidividual)
+                population.append(inidividual)
         
         # randomly select a graph as initial best_graph
-        best_graph = population[random.randrange(len(population))]
+        best_graph = population[random.randrange(self.population_size)]
         print(best_graph)
 
         gen_count = 0
         while gen_count < self.budget or best_graph.fitness_score == 0.0:
             next_gen = []
 
-            while len(next_gen) < len(population):
+            while len(next_gen) < self.population_size:
                 # 3. randomly select parents
                 p1 = self.select(self.selection_size, population)
                 p2 = self.select(self.selection_size, population)
 
                 # 4. crossover parents
                 o1, o2 = self.crossover_graph(p1, p2, crossover_rate=self.crossover_rate)
+
+                # 5. mutate childrent
+                self.mutate_graph(o1, self.mutation_rate, self.mute_op, self.mute_type)
+                self.mutate_graph(o2, self.mutation_rate, self.mute_op, self.mute_type)
+
+                next_gen.append(o1)
+                next_gen.append(o2)
                 break
+            
+            # 6. extend population with next_gen
+            population.extend(next_gen)
+            population = sorted(population, key=lambda x: x.fitness_score, reverse=False)
+            population = population[:self.population_size]
+
+            # 7. select fit graphs in old population + new population
+            best_graph = population[0]
+            gen_count += 1
+            print(f"[*] Generation {gen_count} best graph: {best_graph.fitness_score}")
+            print(best_graph)
+            
             break
+        
+        return best_graph
+
     
     def select(self, k, population):
         # we randomly sample k solutions from the population
         participants = random.sample(population, k)
         # fitness_values = [fitness(p) for p in participants]
-        result = sorted(participants, key=lambda x:x.fitness_score, reverse=False)
-        return result[0]
-
-        
-
-        
-
-
-        
+        result = sorted(participants, key=lambda x:x.fitness_score, reverse=False)[0]
+        return copy.deepcopy(result)
         
     
     def crossover_graph(self, g1, g2, crossover_rate=0.5):
@@ -114,12 +135,26 @@ class GeneticAlgorithm:
 
         return g1, g2
 
-    def mutate_graph(self, mutation_rate, g1):
+    def mutate_graph(self, g1, mutation_rate=0.5, mute_op=0.5, mute_type=0.5):
         """
         returns a mutated version of the graph,
         utilizes function for add, remove, of nodes and edges
         in graph class
         """
-        # TODO: implement this function
-        pass
-    
+        
+        if random.random() < mutation_rate:
+            if random.random() < mute_op:
+                if random.random() < mute_type:
+                    g1.add_random_nodes()
+                else:
+                    g1.add_random_edges()
+            else:
+                if random.random() < mute_type:
+                    g1.remove_random_nodes()
+                else:
+                    g1.remove_random_edges()
+        
+        g1.set_node_nums()
+        g1.evaluate_graph(self.target_dataset_dir)
+        
+        return g1
