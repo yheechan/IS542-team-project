@@ -17,13 +17,40 @@ class Graph:
     ###########################
     ### function of grpah #####
     ###########################
-    def random_subgraph(self):
+    def random_subgraph(self, num_nodes2remove):
         """
         returns a copy of a random grpah that is
         generated as a subgraph of the original graph
         """
-        # TODO: implement this function
-        pass
+        node_size = self.get_node_num()
+        if num_nodes2remove > node_size:
+            raise ValueError("num_nodes2remove cannot be greater than the total number of nodes in the graph")
+    
+        # Get random idx lists of nodes to remove as the number of num_nodes2remove
+        nodes_to_remove = sorted(random.sample(range(node_size), num_nodes2remove))
+        assert len(nodes_to_remove) == num_nodes2remove
+        assert max(nodes_to_remove) < node_size
+        # print(f"[*] Removing nodes: {nodes_to_remove}")
+    
+        # remove nodes from the graph
+        copied_graph = copy.deepcopy(self.graph)
+        
+        removed_nodes_idx = 0
+        for i, connected_nodes in enumerate(copied_graph):
+            if i not in nodes_to_remove:
+                removed_nodes = []
+                for node in connected_nodes:
+                    if node in nodes_to_remove:
+                        connected_nodes.remove(node)
+                        removed_nodes.append(node)
+                #if removed_nodes:
+                    #print(f"[*] For node {i}, removed nodes: {removed_nodes}")
+            else:
+                # print(f"[*] Removed nodes: {nodes_to_remove[removed_nodes_idx]}/{copied_graph[i]}")
+                copied_graph[i] = [-1]
+                removed_nodes_idx += 1
+                # print(f"[*] Removed all connected nodes for node {i}")
+        return copied_graph
 
     def remove_random_nodes(self, number_of_nodes):
         """
