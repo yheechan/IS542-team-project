@@ -63,12 +63,16 @@ class Graph:
         assign a fitness score of the graph
         """
         # TODO: implement this function
-        self.prior_file_path = self.target_dataset_dir / "train.txt"
-        self.withBuffer = True
-        self.target_file_path = self.target_dataset_dir / "target_close.txt"
-        
         self.init(is_train=True)
         self.check_FN_nodes()
+
+    def __str__(self):
+        print("********************")
+
+        ret = "\nfitness: {}\n".format(self.fitness_score)
+        ret += "********************\n"
+
+        return ret
 
 
     ###########################
