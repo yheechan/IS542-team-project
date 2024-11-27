@@ -4,7 +4,7 @@ import lib.constants as Constants
 import copy
 import random
 from sklearn.metrics import roc_auc_score
-
+from collections import defaultdict
 # newgraph_Facebook_equal_close_ENM.txt
 
 class Graph:
@@ -35,6 +35,7 @@ class Graph:
         removed_nodes_idx = 0
         for i, connected_nodes in enumerate(self.graph):
             if i not in nodes_to_remove:
+                # Remove edges
                 removed_nodes = []
                 for node in connected_nodes:
                     if node in nodes_to_remove:
@@ -43,11 +44,69 @@ class Graph:
                 #if removed_nodes:
                     #print(f"[*] For node {i}, removed nodes: {removed_nodes}")
             else:
+                # Remove nodes
                 # print(f"[*] Removed nodes: {nodes_to_remove[removed_nodes_idx]}/{self.graph[i]}")
                 self.graph[i] = [-1]
                 removed_nodes_idx += 1
                 # print(f"[*] Removed all connected nodes for node {i}")
+        
+        # key: old_idx, value: new_idx
+        new_index = self.get_renumber_dict_remove(nodes_to_remove)
+        self.apply_renumber_dict(new_index, nodes_to_remove)
+        
+    def apply_renumber_dict(self, new_index, nodes_to_remove):
+        new_graph = []
+        #self.graph: remove nodes, but not yet renumbered
+        for i, connected_nodes in enumerate(self.graph):
+            # change indexes in connected_nodes to new indexes
+            if i not in nodes_to_remove:
+                assert connected_nodes[0] != -1
+                assert set(connected_nodes).intersection(set(nodes_to_remove)) == set()
+                new_connected_nodes = [new_index[node] for node in connected_nodes]
+                new_graph.append(new_connected_nodes)
+            else:
+                print(f"[*] Node {i} and its connected nodes are not added to new_graph")
+        
+           
+        new_node_index = list(range(len(new_graph)))
+        # Check node_renumbering
+        assert new_node_index == list(new_index.values())
+        # Check edge_renumbering
+        for i, connected_nodes in enumerate(self.graph):
+            # i: old_idx, new_index[i]: new_idx
+            if (i in new_index):
+                assert len(self.graph[i]) == len(new_graph[new_index[i]]),f"len(graph[{i}]): {len(self.graph[i])}, len(new_graph[new_index[{i}]]): {len(new_graph[new_index[i]])}"
+    
+        self.graph = new_graph
 
+    def get_renumber_dict_remove(self, nodes_to_remove):
+        """
+        Renumber the nodes after removing some nodes.
+        """
+        node_size = self.get_node_num()
+        new_index = {}
+        new_idx = 0
+        
+        print(f"[*] Nodes to remove: {nodes_to_remove}")
+        # Create a mapping from old indices to new indices
+        gap = 0
+        for old_idx in range(node_size):
+            if old_idx not in nodes_to_remove:
+                # key: old_idx, value: new_idx
+                new_index[old_idx] = new_idx
+                new_gap = old_idx - new_idx
+                if new_gap > gap:
+                    if old_idx - 1 in nodes_to_remove:
+                        remove_node_idx = nodes_to_remove.index(old_idx - 1)
+                    else:
+                        raise ValueError('Node not found')
+                    print(f"[*] old_idx: {old_idx}, new_idx: {new_idx}"
+                          +f"/ remove_node_idx: {remove_node_idx}, old_idx - new_idx: {new_gap}")
+                    gap = new_gap
+                new_idx += 1
+        return new_index    
+        
+            
 
     def remove_random_nodes(self):
         """

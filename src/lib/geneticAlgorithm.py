@@ -50,6 +50,8 @@ class GeneticAlgorithm:
         """
         # TODO: implement this function
         population = []
+        
+        """
         if self.use_seed:
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
@@ -61,20 +63,20 @@ class GeneticAlgorithm:
                 individual.evaluate_graph(self.target_dataset_dir)
 
                 population.append(individual)
-
+        """
         # randomly initialize population until population size is reached
+
         if len(population) < self.population_size:
             for i in range(self.population_size - len(population)):
                 # choose random number of nodes to remove
-                max_num_nodes_to_remove = int(self.original_graph.node_num/400)
-                random_num_nodes_to_remove= random.randint(0, max_num_nodes_to_remove)
+                max_num_nodes_to_remove = int(self.original_graph.node_num/1600)
+                random_num_nodes_to_remove= random.randint(1, max_num_nodes_to_remove)
                 print(f"[*] Randomly removing {random_num_nodes_to_remove} nodes\n")
                 inidividual = copy.deepcopy(self.original_graph)
                 inidividual.make_as_random_subgraph(random_num_nodes_to_remove)
                 
                 individual.set_node_nums()
                 individual.evaluate_graph(self.target_dataset_dir)
-
 
                 population.append(inidividual)
         
