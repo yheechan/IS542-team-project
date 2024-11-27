@@ -63,7 +63,12 @@ class Graph:
         assign a fitness score of the graph
         """
         # TODO: implement this function
+        self.prior_file_path = self.target_dataset_dir / "train.txt"
+        self.withBuffer = True
+        self.target_file_path = self.target_dataset_dir / "target_close.txt"
+        
         self.init(is_train=True)
+        self.check_FN_nodes()
 
 
     ###########################
@@ -80,26 +85,26 @@ class Graph:
                 node1 = int(line[0])
                 node2 = int(line[1])
                 if node1 > len(self.graph)-1:
-                    self.graph.extend([[] * (node1 - len(self.graph)-1)])
+                    extend_amnt = [[] for _ in range(node1 - (len(self.graph)-1))]
+                    self.graph.extend(extend_amnt)
                 self.graph[node1].append(node2)
         
+        self.num_new_nodes = len(self.graph) - self.config.node_cnt
         self.node_num = len(self.graph)
     
     # I THINK THIS IS FUNCTION THAT RUNS SYBILSCAR
     def init(self, is_train=False):
-        self.prior_list = [0] * self.config.node_cnt
+        self.prior_list = [0] * self.node_num
         self.prior_list = self.read_prior(self.prior_list, is_train=is_train)
         
         post_list = copy.deepcopy(self.prior_list)
 
         for _ in range(Constants.iteration):
-            print("Iteration: ", _)
+            # print("Iteration: ", _)
             post_list_tmp = self.run_lbp(post_list, withBuffer=self.withBuffer)
             post_list = copy.deepcopy(post_list_tmp)
         
         self.post_list = post_list
-        # post_file_path = Constants.ricc_dir_path / self.post_filename
-        # self.save_posterior(self.post_file_path, post_list)
 
     
     def read_prior(self, prior_list, is_train=False):
@@ -193,11 +198,8 @@ class Graph:
         num_unlabel = Constants.num_unlabel
 
 
-        f_performance = open(Constants.ricc_dir_path / f"summary.txt", "w")
-        f_score = open(Constants.ricc_dir_path / self.post_filename, "r")
-        f_target = open(Constants.ricc_dir_path / "target_close.txt", "r")
-
         # read target nodes
+        f_target = open(self.target_file_path, "r")
         target_detect = 0
         target_list = []
         targets = f_target.readline()
@@ -207,7 +209,7 @@ class Graph:
             target_list.append(int(target))
         
         # read original trainset
-        f_train_ori = open(Constants.ricc_dir_path / "train_0.txt", "r")
+        f_train_ori = open(self.prior_file_path, "r")
         train_ori = []
         lines = f_train_ori.read().splitlines()
         for line in lines:
@@ -215,17 +217,15 @@ class Graph:
             train_ori.extend(line)
         
         # compute the posterior score after defense in this turn
-        score_list = []
+        score_list = self.post_list
         score_list_no_train = []
-        scores = f_score.read().splitlines()
 
-        for (idx, score) in enumerate(scores):
-            score = score.split()
-            score_list.append(score[1])
+        for (idx, score) in enumerate(score_list):
             if str(idx) not in train_ori:
-                score_list_no_train.append(float(score[1]))
+                score_list_no_train.append(score)
         
         # find the FN nodes
+        '''
         turn = 0
         if turn == 0:
             f1 = open(Constants.ricc_dir_path / f"post_sybilscar_before_attack({Constants.weight}_{Constants.iteration}).txt", "r")
@@ -250,27 +250,21 @@ class Graph:
         for node in Constants.FN_nodes:
             if float(score_list[int(node)]) < Constants.threshold:
                 error += 1
-        
+        '''
         for node in target_list:
             if float(score_list[int(node)]) > Constants.threshold:
                 target_detect += 1
-        
-        # save initial target detection
-        if turn == 0:
-            pass
 
-        y_true = [0] * (num_negative - 100) + [1] * (num_positive - 100)
+        y_true = [0] * (num_negative - 100) + [1] * (num_positive - 100 + self.num_new_nodes)
         roc_auc = roc_auc_score(y_true, score_list_no_train)
 
         # print and save the performance of the RICC
         msg = "FN rate : [{}/{} ({:.0f}%)]\t AUC : {:.4f}\n".format(
-            target_detect, target_num, 100. * target_detect / target_num, roc_auc
+            target_detect, target_num, (target_detect / target_num)*100.0, roc_auc
         )
-        print(msg)
-        f_performance.write(msg)
+        
+        self.fitness_score = roc_auc
 
-        f_performance.close()
-        f_score.close()
         f_target.close()
         f_train_ori.close()
         

@@ -46,32 +46,23 @@ class GeneticAlgorithm:
         # TODO: implement this function
         population = []
 
-        # if use_seed option is True, then load initial seed (graphs)
+        # 1. if use_seed option is True, then load initial seed (graphs)
         if self.use_seed:
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
                 individual = Graph.Graph(self.config)
                 individual.init_graph()
-                individual.read_graph_from_file_path(graph_file)
 
-                '''
-                individual.prior_file_path = self.target_dataset_dir / "train.txt"
-                individual.post_file_path = self.target_dataset_dir / "test.txt"
-                individual.withBuffer = True
-                individual.init()
-                exit(1)
-                '''
-                print(individual.node_num)
+                individual.read_graph_from_file_path(graph_file)
+                individual.evaluate_graph()
+
                 population.append(individual)
 
         # randomly initialize population until population size is reached
         for i in range(self.population_size - len(population)):
             individual = self.original_graph#.random_subgraph()
         
-        # # assign fitness for each individual in the population
-        # for i in range(len(population)):
-        #     population[i].evaluate_graph()
-            
+
         
 
 
