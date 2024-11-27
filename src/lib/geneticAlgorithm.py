@@ -54,16 +54,16 @@ class GeneticAlgorithm:
             for graph_file in initial_seed_dir.iterdir():
                 individual = Graph.Graph(self.config)
                 individual.init_graph()
-
                 individual.read_graph_from_file_path(graph_file)
+
                 # 2. evaluate individual before adding to population
                 individual.evaluate_graph(self.target_dataset_dir)
 
                 population.append(individual)
 
         # randomly initialize population until population size is reached
-        for i in range(self.population_size - len(population)):
-            individual = self.original_graph#.random_subgraph()
+        # for i in range(self.population_size - len(population)):
+        #     individual = self.original_graph#.random_subgraph()
         
         # randomly select a graph as initial best_graph
         best_graph = population[random.randrange(len(population))]

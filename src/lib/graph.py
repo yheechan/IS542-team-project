@@ -65,7 +65,7 @@ class Graph:
         self.prior_file_path = dataset_dir / "train.txt"
         self.withBuffer = True
         self.target_file_path = dataset_dir / "target_close.txt"
-        self.init(is_train=True)
+        self.sybilscar(is_train=True)
         self.check_FN_nodes()
 
     def __str__(self):
@@ -94,11 +94,18 @@ class Graph:
                     self.graph.extend(extend_amnt)
                 self.graph[node1].append(node2)
         
-        self.num_new_nodes = len(self.graph) - self.config.node_cnt
+        self.num_new_nodes = 0
+        self.num_removed_nodes = 0
+
+        if len(self.graph) > self.config.node_cnt:
+            self.num_new_nodes = len(self.graph) - self.config.node_cnt
+        elif len(self.graph) < self.config.node_cnt:
+            self.num_removed_nodes = self.config.node_cnt - len(self.graph)
+
         self.node_num = len(self.graph)
     
     # I THINK THIS IS FUNCTION THAT RUNS SYBILSCAR
-    def init(self, is_train=False):
+    def sybilscar(self, is_train=False):
         self.prior_list = [0] * self.node_num
         self.prior_list = self.read_prior(self.prior_list, is_train=is_train)
         
