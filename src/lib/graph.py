@@ -47,9 +47,7 @@ class Graph:
                 self.graph[i] = [-1]
                 removed_nodes_idx += 1
                 # print(f"[*] Removed all connected nodes for node {i}")
-    
-    def writeGraph2file(self,):
-        
+
 
     def remove_random_nodes(self, number_of_nodes):
         """

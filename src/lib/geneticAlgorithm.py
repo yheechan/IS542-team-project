@@ -69,8 +69,6 @@ class GeneticAlgorithm:
             inidividual = copy.deepcopy(self.original_graph)
             inidividual.make_as_random_subgraph(random_num_nodes_to_remove)
 
-            individual.writeGraph2file()
-
 
             population.append(inidividual)
         
