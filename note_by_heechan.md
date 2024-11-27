@@ -33,3 +33,7 @@
     Total benign nodes: 100
     Total sybil nodes: 100
     ```
+
+## 241127 13주차 수요일
+* 첫 4039 node는 항상 benign으로 둬야할 것. 즉, 이 node들은 remove 할 수 없게 구현해야할 것.
+    * 이유: 실제 공격 시나리오 생각해보면, 공격자는 자기네 계정을 추가 혹은 삭제 할 수 있지, benign계정은 건드릴 수 없다.

@@ -48,20 +48,21 @@ class GeneticAlgorithm:
         7. select fit graphs in old population + new population 
         8. repeat 3-8 until budget is reached
         """
-        # TODO: implement this function
         population = []
         
         if self.use_seed:
             print(f"[*] Using initial seeds for {self.target} dataset\n")
             initial_seed_dir = self.target_dataset_dir / "initial_seeds"
             for graph_file in initial_seed_dir.iterdir():
+                # if graph_file.name != "newgraph_Facebook_equal_close_ENM_K_60.txt": continue
                 individual = Graph.Graph(self.config)
                 individual.init_graph()
                 individual.read_graph_from_file_path(graph_file)
 
                 # 2. evaluate individual before adding to population
                 individual.evaluate_graph(self.target_dataset_dir)
-
+                print(individual)
+                individual.print_graph_info()
                 population.append(individual)
 
         # randomly initialize population until population size is reached
@@ -69,14 +70,13 @@ class GeneticAlgorithm:
             print(f"[*] Randomly initializing population for {self.target} dataset\n")
             for i in range(self.population_size - len(population)):
                 # choose random number of nodes to remove
-                max_num_nodes_to_remove = int(self.original_graph.node_num/1600)
-                random_num_nodes_to_remove= random.randint(1, max_num_nodes_to_remove)
-                print(f"[*] Randomly removing {random_num_nodes_to_remove} nodes\n")
                 individual = copy.deepcopy(self.original_graph)
-                individual.make_as_random_subgraph(random_num_nodes_to_remove)
+                individual.make_as_random_subgraph()
                 
                 individual.set_node_nums()
                 individual.evaluate_graph(self.target_dataset_dir)
+
+                print(individual)
 
                 population.append(individual)
         

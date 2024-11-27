@@ -1,11 +1,9 @@
-
 import lib.config as Config
 import lib.constants as Constants
 import copy
 import random
 from sklearn.metrics import roc_auc_score
 from collections import defaultdict
-# newgraph_Facebook_equal_close_ENM.txt
 
 class Graph:
     def __init__(self, config):
@@ -17,32 +15,19 @@ class Graph:
     ###########################
     ### function of grpah #####
     ###########################
-    def make_as_random_subgraph(self, num_nodes2remove):
+    def remove_nodes_based_on_list(self, nodes_to_remove):
         """
-        returns a copy of a random grpah that is
-        generated as a subgraph of the original graph
+        returns a copy of the graph that results from removing
+        nodes in 'nodes_to_remove' from the original graph
         """
-        node_size = self.get_node_num()
-        if num_nodes2remove > node_size:
-            raise ValueError("num_nodes2remove cannot be greater than the total number of nodes in the graph")
-    
-        # Get random idx lists of nodes to remove as the number of num_nodes2remove
-        nodes_to_remove = sorted(random.sample(range(node_size), num_nodes2remove))
-        assert len(nodes_to_remove) == num_nodes2remove
-        assert max(nodes_to_remove) < node_size
-        # print(f"[*] Removing nodes: {nodes_to_remove}")
-          
+
         removed_nodes_idx = 0
         for i, connected_nodes in enumerate(self.graph):
             if i not in nodes_to_remove:
-                # Remove edges
-                removed_nodes = []
+                # Remove edges to nodes that will be removed
                 for node in connected_nodes:
                     if node in nodes_to_remove:
                         connected_nodes.remove(node)
-                        removed_nodes.append(node)
-                #if removed_nodes:
-                    #print(f"[*] For node {i}, removed nodes: {removed_nodes}")
             else:
                 # Remove nodes
                 # print(f"[*] Removed nodes: {nodes_to_remove[removed_nodes_idx]}/{self.graph[i]}")
@@ -50,11 +35,34 @@ class Graph:
                 removed_nodes_idx += 1
                 # print(f"[*] Removed all connected nodes for node {i}")
         
-        # key: old_idx, value: new_idx
-        new_index = self.get_renumber_dict_remove(nodes_to_remove)
-        self.apply_renumber_dict(new_index, nodes_to_remove)
+
+    def make_as_random_subgraph(self):
+        """
+        returns a copy of a random grpah that is
+        generated as a subgraph of the original graph
+        """
+    
+        # Decide how many nodes will be removed: num_nodes2remove
+        num_nodes2remove = random.randint(1, 5)
+        print(f"[*] Number of nodes to remove: {num_nodes2remove}")
+
+        # Decide which nodes will be removed: nodes_to_remove
+        # ranges from [num_negative, node_cnt)
+        nodes_to_remove = sorted(
+            random.sample(
+                range(self.config.num_negative, self.config.node_cnt),
+                num_nodes2remove
+            ))
+        print(f"[*] Removing nodes: {nodes_to_remove}")
+          
+        # Remove nodes in graph based on the list of nodes to remove
+        self.remove_nodes_based_on_list(nodes_to_remove)
         
-    def apply_renumber_dict(self, new_index, nodes_to_remove):
+        # key: old_idx, value: new_idx
+        indexing_dict = self.get_renumber_dict_remove(nodes_to_remove)
+        self.apply_renumber_dict(indexing_dict, nodes_to_remove)
+        
+    def apply_renumber_dict(self, indexing_dict, nodes_to_remove):
         new_graph = []
         #self.graph: remove nodes, but not yet renumbered
         for i, connected_nodes in enumerate(self.graph):
@@ -62,12 +70,14 @@ class Graph:
             if i not in nodes_to_remove:
                 assert connected_nodes[0] != -1
                 assert set(connected_nodes).intersection(set(nodes_to_remove)) == set()
-                new_connected_nodes = [new_index[node] for node in connected_nodes]
+                new_connected_nodes = [indexing_dict[node] for node in connected_nodes]
                 new_graph.append(new_connected_nodes)
             else:
                 print(f"[*] Node {i} and its connected nodes are not added to new_graph")
         
            
+        # assert code
+        '''
         new_node_index = list(range(len(new_graph)))
         # Check node_renumbering
         assert new_node_index == list(new_index.values())
@@ -76,6 +86,7 @@ class Graph:
             # i: old_idx, new_index[i]: new_idx
             if (i in new_index):
                 assert len(self.graph[i]) == len(new_graph[new_index[i]]),f"len(graph[{i}]): {len(self.graph[i])}, len(new_graph[new_index[{i}]]): {len(new_graph[new_index[i]])}"
+        '''
     
         self.graph = new_graph
 
@@ -83,7 +94,7 @@ class Graph:
         """
         Renumber the nodes after removing some nodes.
         """
-        node_size = self.get_node_num()
+        node_size = self.node_num
         new_index = {}
         new_idx = 0
         
@@ -155,7 +166,6 @@ class Graph:
         ret = "*** Graph Fitness Score ***\n"
         ret += "fitness: {}\n".format(self.fitness_score)
         ret += "********************\n"
-
         return ret
 
 
@@ -172,7 +182,7 @@ class Graph:
                 line = line.strip().split()
                 node1 = int(line[0])
                 node2 = int(line[1])
-                if node1 > len(self.graph)-1:
+                if node1 >= len(self.graph):
                     extend_amnt = [[] for _ in range(node1 - (len(self.graph)-1))]
                     self.graph.extend(extend_amnt)
                 self.graph[node1].append(node2)
@@ -192,6 +202,7 @@ class Graph:
     
     # I THINK THIS IS FUNCTION THAT RUNS SYBILSCAR
     def sybilscar(self, is_train=False):
+        self.train_node_lists = []
         self.prior_list = [0] * self.node_num
         self.prior_list = self.read_prior(self.prior_list, is_train=is_train)
         
@@ -216,8 +227,10 @@ class Graph:
 
                 for negative_idx in self.negative_nodes:
                     prior_list[int(negative_idx)] = -1 * Constants.theta
+                    self.train_node_lists.append(int(negative_idx))
                 for positive_idx in self.positive_nodes:
                     prior_list[int(positive_idx)] = +1 * Constants.theta
+                    self.train_node_lists.append(int(positive_idx))
         else:
             with open(self.prior_file_path, "r") as f:
                 lines = f.read().splitlines()
@@ -232,6 +245,8 @@ class Graph:
         
         return prior_list
 
+
+    '''
     def save_posterior(self, file_path, post_list):
         """ save posterior scores in file.
         :return:
@@ -288,7 +303,8 @@ class Graph:
                     f_train_score.write(str(i) + " {}\n".format(Constants.theta))
                 else:
                     f_train_score.write(str(i) + " 0\n")
-    
+    '''
+
     def check_FN_nodes(self):
         turn = 1
         num_negative = self.config.num_negative
@@ -315,12 +331,11 @@ class Graph:
             train_ori.extend(line)
         
         # compute the posterior score after defense in this turn
-        score_list = self.post_list
         score_list_no_train = []
-
-        for (idx, score) in enumerate(score_list):
-            if str(idx) not in train_ori:
+        for idx, score in enumerate(self.post_list):
+            if idx not in self.train_node_lists:
                 score_list_no_train.append(score)
+
         
         # find the FN nodes
         '''
@@ -349,11 +364,19 @@ class Graph:
             if float(score_list[int(node)]) < Constants.threshold:
                 error += 1
         '''
+
         for node in target_list:
-            if float(score_list[int(node)]) > Constants.threshold:
+            if float(self.post_list[int(node)]) > Constants.threshold:
                 target_detect += 1
 
-        y_true = [0] * (num_negative - 100) + [1] * (num_positive - 100 + self.num_new_nodes)
+        print(f"[*] graph size: {self.node_num}, {len(self.graph)}")
+        print(f"[*] num_new_nodes: {self.num_new_nodes}, num_removed_nodes: {self.num_removed_nodes}")
+        print(f"[*] num_negative: {num_negative}, num_positive: {num_positive}")
+        y_true = [0] * (num_negative - 100) \
+            + [1] * (num_positive - 100 + self.num_new_nodes - self.num_removed_nodes)
+        # y_true = [0] * (num_negative - 100) \
+            # + [1] * (num_positive - (100 + self.num_new_nodes))
+        print(f"len(y_true): {len(y_true)}, len(score_list_no_train): {len(score_list_no_train)}")
         roc_auc = roc_auc_score(y_true, score_list_no_train)
 
         # print and save the performance of the RICC
@@ -365,24 +388,8 @@ class Graph:
 
         f_target.close()
         f_train_ori.close()
-        
-
-
-
 
         
-    
-    ###########################
-    ### GETTERS ###############
-    ###########################
-    def get_graph_list(self):
-        return self.graph
-    
-    def get_node_num(self):
-        return self.node_num
-    
-    def get_prior_list(self):
-        return self.prior_list
     
     ###########################
     ### PRINT UTILS ###########
@@ -390,8 +397,6 @@ class Graph:
     def print_graph_info(self):
         print("Graph Info")
         print("Graph Type: ", self.config.graph_type)
-        print("Attack Type: ", self.config.attack_type)
-        print("Graph File Path: ", self.graph_file_path)
         print("Node Count: ", self.node_num)
 
     def print_graph(self):
@@ -444,3 +449,4 @@ class Graph:
         post_list = copy.deepcopy(next_post_list)
 
         return post_list
+
