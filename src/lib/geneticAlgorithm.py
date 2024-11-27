@@ -57,10 +57,7 @@ class GeneticAlgorithm:
 
                 individual.read_graph_from_file_path(graph_file)
                 # 2. evaluate individual before adding to population
-                individual.prior_file_path = self.target_dataset_dir / "train.txt"
-                individual.withBuffer = True
-                individual.target_file_path = self.target_dataset_dir / "target_close.txt"
-                individual.evaluate_graph()
+                individual.evaluate_graph(self.target_dataset_dir)
 
                 population.append(individual)
 
@@ -70,7 +67,7 @@ class GeneticAlgorithm:
         
         # randomly select a graph as initial best_graph
         best_graph = population[random.randrange(len(population))]
-        print(f"Initial best graph: {best_graph}")
+        print(best_graph)
 
         gen_count = 0
         while gen_count < self.budget or best_graph.fitness_score == 0.0:

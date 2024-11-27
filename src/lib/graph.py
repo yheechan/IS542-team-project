@@ -57,19 +57,20 @@ class Graph:
         # TODO: implement this function
         pass
 
-    def evaluate_graph(self):
+    def evaluate_graph(self, dataset_dir):
         """
         evaluates graph to SybilSCAR to
         assign a fitness score of the graph
         """
-        # TODO: implement this function
+        self.prior_file_path = dataset_dir / "train.txt"
+        self.withBuffer = True
+        self.target_file_path = dataset_dir / "target_close.txt"
         self.init(is_train=True)
         self.check_FN_nodes()
 
     def __str__(self):
-        print("********************")
-
-        ret = "\nfitness: {}\n".format(self.fitness_score)
+        ret = "*** Graph Fitness Score ***\n"
+        ret += "fitness: {}\n".format(self.fitness_score)
         ret += "********************\n"
 
         return ret
