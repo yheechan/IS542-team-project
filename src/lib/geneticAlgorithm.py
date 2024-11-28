@@ -1,5 +1,6 @@
 import random
 import copy
+from matplotlib import pyplot as plt
 
 import lib.config as Config
 import lib.graph as Graph
@@ -82,24 +83,15 @@ class GeneticAlgorithm:
         print(best_graph)
 
         gen_count = 0
+        roc_curve = []
+        print(f"[*] Running GA for {self.target} dataset\n")
         while gen_count < self.budget or best_graph.fitness_score == 0.0:
             next_gen = []
-
             while len(next_gen) < self.population_size:
-                # 3. randomly select parents
-                p1 = self.select(self.selection_size, population)
-                p2 = self.select(self.selection_size, population)
-
-                # 4. crossover parents
-                o1, o2 = self.crossover_graph(p1, p2, crossover_rate=self.crossover_rate)
-
                 # 5. mutate childrent
+                o1 = self.select(self.selection_size, population)
                 self.mutate_graph(o1, self.mutation_rate, self.mute_op, self.mute_type)
-                self.mutate_graph(o2, self.mutation_rate, self.mute_op, self.mute_type)
-
                 next_gen.append(o1)
-                next_gen.append(o2)
-                break
             
             # 6. extend population with next_gen
             population.extend(next_gen)
@@ -109,12 +101,38 @@ class GeneticAlgorithm:
             # 7. select fit graphs in old population + new population
             best_graph = population[0]
             gen_count += 1
-            print(f"[*] Generation {gen_count} best graph: {best_graph.fitness_score}")
-            print(best_graph)
+            roc_curve.append(best_graph.fitness_score)
+            print(f"[*] Generation {gen_count}/{self.budget} best graph: {best_graph.fitness_score}")
             
-            break
-        
+        self.plot_graph(roc_curve)
+        self.write_best_graph(best_graph)
         return best_graph
+    
+    def plot_graph(self, roc_curve):
+        plt.plot(roc_curve)
+        plt.ylabel('Fitness Score')
+        plt.xlabel('Generation')
+
+        # save to file
+        png_file = Constants.result_dir_path / f"roc_curve_{self.target}.png"
+        plt.savefig(png_file)
+    
+    def write_best_graph(self, best_graph):
+        score_file = Constants.result_dir_path / f"best_graph_{self.target}.csv"
+        with open(score_file, "w") as fp:
+            fp.write("Generation,Score\n")
+            for gen, score in enumerate(best_graph.fitness_score_history):
+                content = f"{gen},{score}\n"
+                fp.write(content)
+
+        mutation_file = Constants.result_dir_path / f"mutation_history_{self.target}.csv"
+        with open(mutation_file, "w") as fp:
+            fp.write("Generation,mutation_op\n")
+            for gen, mutation_op in enumerate(best_graph.mutation_history):
+                content = f"{gen},{mutation_op}\n"
+                fp.write(content)
+
+
 
     
     def select(self, k, population):
@@ -124,16 +142,6 @@ class GeneticAlgorithm:
         result = sorted(participants, key=lambda x:x.fitness_score, reverse=False)[0]
         return copy.deepcopy(result)
         
-    
-    def crossover_graph(self, g1, g2, crossover_rate=0.5):
-        """
-        returns two graph that results from crossover
-        """
-        if random.random() < crossover_rate:
-            pass
-
-        return g1, g2
-
     def mutate_graph(self, g1, mutation_rate=0.5, mute_op=0.5, mute_type=0.5):
         """
         returns a mutated version of the graph,
@@ -156,4 +164,3 @@ class GeneticAlgorithm:
         g1.set_node_nums()
         g1.evaluate_graph(self.target_dataset_dir)
         
-        return g1

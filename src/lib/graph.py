@@ -8,9 +8,8 @@ from collections import defaultdict
 class Graph:
     def __init__(self, config):
         self.config = config
-        # intializes..
-        # self.graph
-        # self.init_graph()
+        self.mutation_history = []
+        self.fitness_score_history = []
 
     ###########################
     ### function of grpah #####
@@ -20,7 +19,6 @@ class Graph:
         returns a copy of the graph that results from removing
         nodes in 'nodes_to_remove' from the original graph
         """
-
         removed_nodes_idx = 0
         for i, connected_nodes in enumerate(self.graph):
             # Remove edges to nodes that will be removed
@@ -122,6 +120,9 @@ class Graph:
                 new_idx += 1
         return new_index    
         
+
+    def add_mutation_history(self, mutation_op):
+        self.mutation_history.append(mutation_op)
             
 
     def remove_random_nodes(self):
@@ -129,32 +130,130 @@ class Graph:
         returns a copy of the graph that results from removing
         'number_of_nodes' number of nodes from the original graph
         """
-        # TODO: implement this function
-        pass
+        sybil_node_count = self.node_num - self.config.num_negative
+        if sybil_node_count < 2000:
+            self.add_mutation_history("remove_nodes_0")
+            return
+        
+        # 1. Decide how many nodes will be removed: num_nodes2remove
+        num_nodes2remove = random.randint(1, 5)
+
+        # 2. Decide which nodes will be removed: nodes_to_remove
+        nodes_to_remove = sorted(
+            random.sample(
+                range(self.config.num_negative, self.config.node_cnt),
+                num_nodes2remove
+            ))
+        
+        # 3. Remove nodes in graph based on the list of nodes to remove
+        self.remove_nodes_based_on_list(nodes_to_remove)
+
+        # 4. Renumber the nodes after removing some nodes
+        indexing_dict = self.get_renumber_dict_remove(nodes_to_remove)
+
+        # 5. Apply renumbering
+        self.apply_renumber_dict(indexing_dict, nodes_to_remove)
+
+        # 6. Add mutation history
+        self.add_mutation_history(f"remove_nodes_{num_nodes2remove}")
 
     def add_random_nodes(self):
         """
         returns a copy of the graph that results from adding
         'number_of_nodes' number of nodes to the original graph
         """
-        # TODO: implement this function
-        pass
+        # 1. Decide how many nodes will be added: num_nodes2add
+        num_nodes2add = random.randint(1, 5)
+
+        # 2. Add nodes to the graph
+        self.add_random_nodes_helper(num_nodes2add)
+
+        # 3. Add mutation history
+        self.add_mutation_history(f"add_nodes_{num_nodes2add}")
+    
+    def add_random_nodes_helper(self, num_nodes2add):
+        """
+        Add nodes to the graph
+        """
+        new_nodes = []
+        for _ in range(num_nodes2add):
+            # 1. decide how many edges will be added to the new node
+            num_edges = random.randint(1, 10)
+
+            # 2. sample nodes to connect to the new node
+            # this is to add negative(benign) node because it will fuzz the tool for correct classification
+            connected_nodes = random.sample(range(self.config.num_negative), num_edges)
+
+            # 3. add the new node to the graph
+            new_nodes.append(connected_nodes)
+        
+        self.graph.extend(new_nodes)
 
     def remove_random_edges(self):
         """
         returns a copy of the graph that results from removing
         'number_of_edges' number of edges from the original graph
         """
-        # TODO: implement this function
-        pass
+        # 1. Decide how many nodes will be altered to remove edges: num_nodes2alter
+        num_nodes2alter = random.randint(1, 5)
+
+        # 2. Remove edges of the selected nodes
+        self.remove_random_edges_helper(num_nodes2alter)
+
+        # 3. Add mutation history
+        self.add_mutation_history(f"remove_edges_{num_nodes2alter}")
+
+    def remove_random_edges_helper(self, num_nodes2alter):
+        """
+        Remove edges of the selected nodes
+        """
+        # 1. select a node to remove edges
+        # attacker can only alter edges of sybil nodes
+        sample_target_nodes = random.sample(range(self.config.num_negative, self.node_num), num_nodes2alter)
+        for node_idx in sample_target_nodes:
+            # 2. Decide how many edges will be removed from the node
+            # this is to remove sybil edges because it will fuzz the tool for correct classification
+            sybil_edges = [edge for edge in self.graph[node_idx] if edge >= self.config.num_negative]
+            if len(sybil_edges) == 0: continue
+            num_edges2remove = random.randint(1, len(sybil_edges))
+
+            # 3. Decide which edges will be removed
+            edges2remove = random.sample(sybil_edges, num_edges2remove)
+
+            # 4. Remove edges from the node
+            self.graph[node_idx] = [edge for edge in self.graph[node_idx] if edge not in edges2remove]
+
 
     def add_random_edges(self):
         """
         returns a copy of the graph that results from adding
         'number_of_edges' number of edges to the original graph
         """
-        # TODO: implement this function
-        pass
+        # 1. Decide how many nodes will be altered to add edges: num_nodes2alter
+        num_nodes2alter = random.randint(1, 5)
+
+        # 2. Add edges to the selected nodes
+        self.add_random_edges_helper(num_nodes2alter)
+
+        # 3. Add mutation history
+        self.add_mutation_history(f"add_edges_{num_nodes2alter}")
+
+    def add_random_edges_helper(self, num_nodes2alter):
+        # 1. select a node to add edges
+        # attacker can only alter edges of sybil nodes
+        sample_target_nodes = random.sample(range(self.config.num_negative, self.node_num), num_nodes2alter)
+        for node_idx in sample_target_nodes:
+            # 2. Decide how many edges will be added to the node
+            num_edges2add = random.randint(1, 10)
+
+            # 3. Add edges to the node
+            # this is to add benign edges because it will fuzz the tool for correct classification
+            benign_edges = [edge for edge in range(self.config.num_negative) if edge not in self.graph[node_idx]]
+            edges2add = random.sample(benign_edges, num_edges2add)
+
+            # 4. Add edges to the node
+            self.graph[node_idx].extend(edges2add)
+
 
     def evaluate_graph(self, dataset_dir):
         """
@@ -384,6 +483,7 @@ class Graph:
         )
         
         self.fitness_score = roc_auc
+        self.fitness_score_history.append(self.fitness_score)
 
         f_target.close()
         f_train_ori.close()

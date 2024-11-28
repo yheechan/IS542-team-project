@@ -13,6 +13,10 @@ main_dir_path = src_dir_path.parent
 
 dataset_dir_path = main_dir_path / "dataset"
 
+result_dir_path = main_dir_path / "result"
+if not result_dir_path.exists():
+    result_dir_path.mkdir()
+
 # Temporary,, don't know what these constants does
 buffer = 0.8
 sampling_size = 100
