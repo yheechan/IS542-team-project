@@ -1,25 +1,32 @@
 # IS542-team-project
 
 ## Genetic Algorithm-Based Adversarial Attack on SybilSCAR
-* this is a temporary name for our project
+This is a tool in which automatically constructs a social network graph that aims to bypass sybil node detection tools such as SybilSCAR based on Genetic Algorithm.
 
-## TODO List
-* make a creative name for our project
-* build the basic structure (cornerstone) of the tool
-* divide implementation tasks to members
+## Tool Usage
+```
+usage: main.py [-h] -t TARGET [-s] -e EXPERIMENT_NAME
 
-## Implementation TODO list
-* ``geneticAlgorithm.py``
-    * ``run_ga()``
-    * ``crossover_graph()``
-    * ``mutate_graph()``
-* ``graph.py``
-    * ``random_graph()``
-    * ``remove_random_nodes()``
-    * ``add_randome_nodes()``
-    * ``remove_random_edges()``
-    * ``add_random_edges()``
-    * ``evaluate_graph()``
+main.py is to run GA on SybilSCAR
 
-Last updated Nov 01, 2024
+options:
+  -h, --help            show this help message and exit
+  -t TARGET, --target TARGET
+                        target (e.g., Facebook, etc.)
+  -s, --use-seed        use seed
+  -e EXPERIMENT_NAME, --experiment-name EXPERIMENT_NAME
+                        experiment name
+```
+* flag explanation:
+    * ``-t <target-name>``: flag to indicate target dataset.
+    * ``-s``: flag that uses initial seed when given.
+    * ``-e <experiment-name>``: flag to indicate experiment name.
 
+## Execution step
+```
+$ time python3 main.py -e experiment-v1 -t Facebook -s
+```
+* Parameters for the genetic algorithm can be changed within ``src/main.py`` source file.
+
+
+Last update Nov 30, 2024

@@ -7,4 +7,4 @@ class ArgParser(argparse.ArgumentParser):
         )
         self.add_argument("-t", "--target", help="target (e.g., Facebook, etc.)", required=True)
         self.add_argument("-s", "--use-seed", help="use seed", action="store_true")
-        # self.add_argument("-o", "--original-graph-file", help="original graph file path", required=True)
+        self.add_argument("-e", "--experiment-name", help="experiment name", required=True)

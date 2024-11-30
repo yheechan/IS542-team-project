@@ -1,6 +1,7 @@
 import random
 import copy
 from matplotlib import pyplot as plt
+import json
 
 import lib.config as Config
 import lib.graph as Graph
@@ -8,12 +9,15 @@ import lib.constants as Constants
 
 class GeneticAlgorithm:
     def __init__(
-            self, target, use_seed,
+            self, experiment_name, target, use_seed,
             budget=10, population_size=10, selection_size=3,
             crossover_rate=0.5, mutation_rate=0.5,
             mute_op=0.5, mute_type=0.5,
     ):
         # initializes configs
+        self.experiment_name = experiment_name
+        self.result_path = Constants.result_dir_path / self.experiment_name
+        self.result_path.mkdir(parents=True, exist_ok=True)
         self.target = target
         self.use_seed = use_seed
         self.target_dataset_dir = Constants.dataset_dir_path / target
@@ -106,6 +110,11 @@ class GeneticAlgorithm:
             
         self.plot_graph(roc_curve)
         self.write_best_graph(best_graph)
+        self.write_parameters(
+            self.experiment_name, self.target, self.use_seed,
+            self.budget, self.population_size, self.selection_size,
+            self.crossover_rate, self.mutation_rate, self.mute_op, self.mute_type
+        )
         return best_graph
     
     def plot_graph(self, roc_curve):
@@ -114,25 +123,53 @@ class GeneticAlgorithm:
         plt.xlabel('Generation')
 
         # save to file
-        png_file = Constants.result_dir_path / f"roc_curve_{self.target}.png"
+        png_file = self.result_path / f"roc_curve_{self.target}.png"
         plt.savefig(png_file)
     
     def write_best_graph(self, best_graph):
-        score_file = Constants.result_dir_path / f"best_graph_{self.target}.csv"
+        score_file = self.result_path / f"best_graph_score_{self.target}.csv"
         with open(score_file, "w") as fp:
             fp.write("Generation,Score\n")
             for gen, score in enumerate(best_graph.fitness_score_history):
                 content = f"{gen},{score}\n"
                 fp.write(content)
 
-        mutation_file = Constants.result_dir_path / f"mutation_history_{self.target}.csv"
+        mutation_file = self.result_path / f"mutation_history_{self.target}.csv"
         with open(mutation_file, "w") as fp:
             fp.write("Generation,mutation_op\n")
             for gen, mutation_op in enumerate(best_graph.mutation_history):
                 content = f"{gen},{mutation_op}\n"
                 fp.write(content)
+        
+        best_graph_file = self.result_path / f"best_graph_{self.target}.txt"
+        with open(best_graph_file, "w") as fp:
+            for source, edges in enumerate(best_graph.graph):
+                for dest in edges:
+                    content = f"{source} {dest}\n"
+                    fp.write(content)
+        
 
-
+    def write_parameters(
+            self, experiment_name, target, use_seed,
+            budget, population_size, selection_size,
+            crossover_rate, mutation_rate, mute_op, mute_type
+    ):
+        param_file = self.result_path / f"parameters_{self.target}.csv"
+        # write using json
+        with open(param_file, "w") as fp:
+            content = json.dumps({
+                "experiment_name": experiment_name,
+                "target": target,
+                "use_seed": use_seed,
+                "budget": budget,
+                "population_size": population_size,
+                "selection_size": selection_size,
+                "crossover_rate": crossover_rate,
+                "mutation_rate": mutation_rate,
+                "mute_op": mute_op,
+                "mute_type": mute_type
+            }, indent=2)
+            fp.write(content)
 
     
     def select(self, k, population):
